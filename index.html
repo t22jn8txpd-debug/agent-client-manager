@@ -280,14 +280,6 @@
       render();
     }
     
-    // Expose functions globally for onclick handlers
-    window.openAddModal = openAddModal;
-    window.closeModal = closeModal;
-    window.addClient = addClient;
-    window.addProject = addProject;
-    window.addInvoice = addInvoice;
-    window.switchTab = switchTab;
-    
     function saveData() {
       localStorage.setItem('agentClientManagerData', JSON.stringify(data));
       render();
@@ -550,6 +542,14 @@
     document.getElementById('modal').addEventListener('click', (e) => {
       if (e.target.id === 'modal') closeModal();
     });
+    
+    // Expose functions globally for onclick handlers
+    window.openAddModal = openAddModal;
+    window.closeModal = closeModal;
+    window.addClient = addClient;
+    window.addProject = addProject;
+    window.addInvoice = addInvoice;
+    window.switchTab = switchTab;
     
     loadData();
   </script>
