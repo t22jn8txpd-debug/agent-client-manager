@@ -280,6 +280,14 @@
       render();
     }
     
+    // Expose functions globally for onclick handlers
+    window.openAddModal = openAddModal;
+    window.closeModal = closeModal;
+    window.addClient = addClient;
+    window.addProject = addProject;
+    window.addInvoice = addInvoice;
+    window.switchTab = switchTab;
+    
     function saveData() {
       localStorage.setItem('agentClientManagerData', JSON.stringify(data));
       render();
