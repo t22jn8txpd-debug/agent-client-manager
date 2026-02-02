@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Client Manager 💼</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #6C63FF;
+    }
+    
+    h1 {
+      font-size: 2.5em;
+      background: linear-gradient(135deg, #6C63FF, #FF6584);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 10px;
+    }
+    
+    .subtitle { color: #aaa; }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #444;
+    }
+    
+    .stat-label { color: #aaa; font-size: 0.9em; margin-bottom: 8px; }
+    .stat-value { font-size: 2em; font-weight: bold; color: #6C63FF; }
+    
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #444;
+    }
+    
+    .tab {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      color: #aaa;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      font-size: 1.05em;
+    }
+    
+    .tab:hover { color: #fff; }
+    .tab.active {
+      color: #6C63FF;
+      border-bottom-color: #6C63FF;
+    }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    button {
+      padding: 12px 24px;
+      background: #6C63FF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #5a52e0;
+      transform: translateY(-1px);
+    }
+    
+    button.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #444;
+    }
+    
+    .add-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      font-size: 24px;
+      box-shadow: 0 4px 20px rgba(108, 99, 255, 0.4);
+    }
+    
+    .items-grid {
+      display: grid;
+      gap: 15px;
+    }
+    
+    .item-card {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 10px;
+      border-left: 4px solid #6C63FF;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .item-card:hover {
+      transform: translateX(5px);
+      box-shadow: 0 5px 20px rgba(108, 99, 255, 0.3);
+    }
+    
+    .item-card h3 { color: #FF6584; margin-bottom: 8px; }
+    .item-card .meta { color: #aaa; font-size: 0.9em; margin-bottom: 10px; }
+    .item-card .status {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.85em;
+      margin-right: 8px;
+    }
+    
+    .status.active { background: rgba(76, 175, 80, 0.2); color: #4CAF50; }
+    .status.pending { background: rgba(255, 193, 7, 0.2); color: #FFC107; }
+    .status.completed { background: rgba(33, 150, 243, 0.2); color: #2196F3; }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    
+    .modal.active { display: flex; align-items: center; justify-content: center; }
+    
+    .modal-content {
+      background: #16213e;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 100%;
+      border: 1px solid #444;
+    }
+    
+    .modal-content h2 {
+      color: #6C63FF;
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      color: #ccc;
+      margin-bottom: 8px;
+    }
+    
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: white;
+      font-family: inherit;
+    }
+    
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 25px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+    }
+    
+    .empty-state-icon { font-size: 4em; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Agent Client Manager 💼</h1>
+      <p class="subtitle">Track clients, projects, and invoices for your freelance agent work</p>
+    </header>
+    
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Active Clients</div>
+        <div class="stat-value" id="activeClients">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Projects</div>
+        <div class="stat-value" id="activeProjects">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Revenue</div>
+        <div class="stat-value" id="totalRevenue">$0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Invoices</div>
+        <div class="stat-value" id="pendingInvoices">0</div>
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('clients')">Clients</button>
+      <button class="tab" onclick="switchTab('projects')">Projects</button>
+      <button class="tab" onclick="switchTab('invoices')">Invoices</button>
+    </div>
+    
+    <div id="clients" class="tab-content active">
+      <div class="items-grid" id="clientsList"></div>
+    </div>
+    
+    <div id="projects" class="tab-content">
+      <div class="items-grid" id="projectsList"></div>
+    </div>
+    
+    <div id="invoices" class="tab-content">
+      <div class="items-grid" id="invoicesList"></div>
+    </div>
+    
+    <button class="add-btn" onclick="openAddModal()">+</button>
+  </div>
+  
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Add Client</h2>
+      <div id="modalForm"></div>
+    </div>
+  </div>
+  
+  <script>
+    let currentTab = 'clients';
+    let data = {
+      clients: [],
+      projects: [],
+      invoices: []
+    };
+    
+    function loadData() {
+      const saved = localStorage.getItem('agentClientManagerData');
+      if (saved) data = JSON.parse(saved);
+      render();
+    }
+    
+    function saveData() {
+      localStorage.setItem('agentClientManagerData', JSON.stringify(data));
+      render();
+    }
+    
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelector(\`.tab:nth-child(\${['clients', 'projects', 'invoices'].indexOf(tab) + 1})\`).classList.add('active');
+      document.getElementById(tab).classList.add('active');
+    }
+    
+    function openAddModal() {
+      const modal = document.getElementById('modal');
+      const title = document.getElementById('modalTitle');
+      const form = document.getElementById('modalForm');
+      
+      const forms = {
+        clients: \`
+          <div class="form-group">
+            <label>Client Name *</label>
+            <input type="text" id="name" required>
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="email">
+          </div>
+          <div class="form-group">
+            <label>Company</label>
+            <input type="text" id="company">
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="notes"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="secondary" onclick="closeModal()">Cancel</button>
+            <button onclick="addClient()">Add Client</button>
+          </div>
+        \`,
+        projects: \`
+          <div class="form-group">
+            <label>Project Name *</label>
+            <input type="text" id="name" required>
+          </div>
+          <div class="form-group">
+            <label>Client *</label>
+            <select id="clientId">
+              <option value="">Select client...</option>
+              \${data.clients.map(c => \`<option value="\${c.id}">\${c.name}</option>\`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Budget ($)</label>
+            <input type="number" id="budget" min="0">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="status">
+              <option value="pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="description"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="secondary" onclick="closeModal()">Cancel</button>
+            <button onclick="addProject()">Add Project</button>
+          </div>
+        \`,
+        invoices: \`
+          <div class="form-group">
+            <label>Invoice Number *</label>
+            <input type="text" id="number" required>
+          </div>
+          <div class="form-group">
+            <label>Project</label>
+            <select id="projectId">
+              <option value="">Select project...</option>
+              \${data.projects.map(p => \`<option value="\${p.id}">\${p.name}</option>\`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Amount ($) *</label>
+            <input type="number" id="amount" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="status">
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" id="dueDate">
+          </div>
+          <div class="form-actions">
+            <button class="secondary" onclick="closeModal()">Cancel</button>
+            <button onclick="addInvoice()">Add Invoice</button>
+          </div>
+        \`
+      };
+      
+      title.textContent = \`Add \${currentTab.charAt(0).toUpperCase() + currentTab.slice(1, -1)}\`;
+      form.innerHTML = forms[currentTab];
+      modal.classList.add('active');
+    }
+    
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
+    }
+    
+    function addClient() {
+      const name = document.getElementById('name').value;
+      if (!name) return;
+      
+      data.clients.push({
+        id: Date.now().toString(),
+        name,
+        email: document.getElementById('email').value,
+        company: document.getElementById('company').value,
+        notes: document.getElementById('notes').value,
+        createdAt: new Date().toISOString()
+      });
+      
+      saveData();
+      closeModal();
+    }
+    
+    function addProject() {
+      const name = document.getElementById('name').value;
+      const clientId = document.getElementById('clientId').value;
+      if (!name || !clientId) return alert('Name and client required!');
+      
+      data.projects.push({
+        id: Date.now().toString(),
+        name,
+        clientId,
+        budget: parseFloat(document.getElementById('budget').value) || 0,
+        status: document.getElementById('status').value,
+        description: document.getElementById('description').value,
+        createdAt: new Date().toISOString()
+      });
+      
+      saveData();
+      closeModal();
+    }
+    
+    function addInvoice() {
+      const number = document.getElementById('number').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      if (!number || !amount) return alert('Number and amount required!');
+      
+      data.invoices.push({
+        id: Date.now().toString(),
+        number,
+        projectId: document.getElementById('projectId').value,
+        amount,
+        status: document.getElementById('status').value,
+        dueDate: document.getElementById('dueDate').value,
+        createdAt: new Date().toISOString()
+      });
+      
+      saveData();
+      closeModal();
+    }
+    
+    function render() {
+      // Update stats
+      const activeClients = data.clients.length;
+      const activeProjects = data.projects.filter(p => p.status === 'active').length;
+      const totalRevenue = data.invoices.filter(i => i.status === 'paid').reduce((sum, i) => sum + i.amount, 0);
+      const pendingInvoices = data.invoices.filter(i => i.status === 'pending').length;
+      
+      document.getElementById('activeClients').textContent = activeClients;
+      document.getElementById('activeProjects').textContent = activeProjects;
+      document.getElementById('totalRevenue').textContent = '$' + totalRevenue.toLocaleString();
+      document.getElementById('pendingInvoices').textContent = pendingInvoices;
+      
+      // Render clients
+      const clientsList = document.getElementById('clientsList');
+      if (data.clients.length === 0) {
+        clientsList.innerHTML = \`
+          <div class="empty-state">
+            <div class="empty-state-icon">👤</div>
+            <p>No clients yet. Click + to add your first client!</p>
+          </div>
+        \`;
+      } else {
+        clientsList.innerHTML = data.clients.map(c => \`
+          <div class="item-card">
+            <h3>\${c.name}</h3>
+            <div class="meta">\${c.company || 'No company'} • \${c.email || 'No email'}</div>
+            <div>\${c.notes || 'No notes'}</div>
+          </div>
+        \`).join('');
+      }
+      
+      // Render projects
+      const projectsList = document.getElementById('projectsList');
+      if (data.projects.length === 0) {
+        projectsList.innerHTML = \`
+          <div class="empty-state">
+            <div class="empty-state-icon">📁</div>
+            <p>No projects yet. Click + to add your first project!</p>
+          </div>
+        \`;
+      } else {
+        projectsList.innerHTML = data.projects.map(p => {
+          const client = data.clients.find(c => c.id === p.clientId);
+          return \`
+            <div class="item-card">
+              <h3>\${p.name}</h3>
+              <div class="meta">
+                <span class="status \${p.status}">\${p.status}</span>
+                Client: \${client ? client.name : 'Unknown'}
+              </div>
+              <div>\${p.description || 'No description'}</div>
+              <div class="meta" style="margin-top: 10px">Budget: $\${p.budget.toLocaleString()}</div>
+            </div>
+          \`;
+        }).join('');
+      }
+      
+      // Render invoices
+      const invoicesList = document.getElementById('invoicesList');
+      if (data.invoices.length === 0) {
+        invoicesList.innerHTML = \`
+          <div class="empty-state">
+            <div class="empty-state-icon">💰</div>
+            <p>No invoices yet. Click + to add your first invoice!</p>
+          </div>
+        \`;
+      } else {
+        invoicesList.innerHTML = data.invoices.map(i => {
+          const project = data.projects.find(p => p.id === i.projectId);
+          return \`
+            <div class="item-card">
+              <h3>Invoice #\${i.number}</h3>
+              <div class="meta">
+                <span class="status \${i.status === 'paid' ? 'completed' : 'pending'}">\${i.status}</span>
+                \${project ? 'Project: ' + project.name : 'No project'}
+              </div>
+              <div class="meta" style="margin-top: 10px">
+                Amount: $\${i.amount.toLocaleString()}
+                \${i.dueDate ? ' • Due: ' + new Date(i.dueDate).toLocaleDateString() : ''}
+              </div>
+            </div>
+          \`;
+        }).join('');
+      }
+    }
+    
+    // Close modal on outside click
+    document.getElementById('modal').addEventListener('click', (e) => {
+      if (e.target.id === 'modal') closeModal();
+    });
+    
+    loadData();
+  </script>
+</body>
+</html>
